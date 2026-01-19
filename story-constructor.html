@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Constructor — Конструктор сторителлинга</title>
+    
+    <!-- SF Pro Font (Apple system) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           CSS VARIABLES — Apple-inspired Design System
+        ═══════════════════════════════════════════════════════════ */
+        :root {
+            /* Colors — Dark Mode by default (2025 trend) */
+            --bg-primary: #000000;
+            --bg-secondary: #0d0d0d;
+            --bg-tertiary: #1a1a1a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --bg-glass-hover: rgba(255, 255, 255, 0.08);
+            
+            /* Text */
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.4);
+            --text-placeholder: rgba(255, 255, 255, 0.25);
+            
+            /* Accents */
+            --accent-primary: #0A84FF;
+            --accent-gradient: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%);
+            --accent-glow: rgba(10, 132, 255, 0.3);
+            --accent-success: #30D158;
+            --accent-warning: #FF9F0A;
+            --accent-danger: #FF453A;
+            
+            /* Borders */
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-medium: rgba(255, 255, 255, 0.12);
+            --border-strong: rgba(255, 255, 255, 0.2);
+            
+            /* Shadows — Liquid Glass effect */
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-glow: 0 0 40px var(--accent-glow);
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            
+            /* Border Radius — Soft edges (2025 trend) */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            --radius-full: 9999px;
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            --font-size-xs: 11px;
+            --font-size-sm: 13px;
+            --font-size-base: 15px;
+            --font-size-lg: 17px;
+            --font-size-xl: 20px;
+            --font-size-2xl: 28px;
+            --font-size-3xl: 34px;
+            
+            /* Transitions — Smooth microinteractions */
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           RESET & BASE STYLES
+        ═══════════════════════════════════════════════════════════ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Скрытие скроллбара в стиле Apple */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: var(--radius-full);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-strong);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════════════════════════ */
+        .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header — Glassmorphism */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: var(--space-md) var(--space-lg);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-lg);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .logo-text {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-badge {
+            font-size: var(--font-size-xs);
+            padding: 2px 6px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Header Actions */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            font-family: inherit;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+
+        .btn-glass {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-glass:hover {
+            background: var(--bg-glass-hover);
+            border-color: var(--border-medium);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: var(--accent-danger);
+            color: white;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: var(--space-xl) var(--space-lg);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           STATS BAR — Progress Overview
+        ═══════════════════════════════════════════════════════════ */
+        .stats-bar {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 140px;
+            padding: var(--space-md);
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-fast);
+        }
+
+        .stat-card:hover {
+            background: var(--bg-glass-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 2px;
+        }
+
+        .stat-value.accent {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            flex: 2;
+            min-width: 200px;
+            padding: var(--space-md);
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+        }
+
+        .progress-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .progress-percent {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            transition: width var(--transition-slow);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           STORY GRID — Bento Grid Style
+        ═══════════════════════════════════════════════════════════ */
+        .story-section {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .section-title h2 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .section-count {
+            font-size: var(--font-size-xs);
+            padding: 3px 8px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-full);
+            color: var(--text-tertiary);
+        }
+
+        .section-tip {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-glass);
+            border-radius: var(--radius-md);
+            border-left: 2px solid var(--accent-primary);
+        }
+
+        /* Story Grid */
+        .story-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-md);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           STORY CARD — Liquid Glass Style
+        ═══════════════════════════════════════════════════════════ */
+        .story-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            transition: all var(--transition-base);
+            cursor: grab;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .story-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-medium);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .story-card:active {
+            cursor: grabbing;
+        }
+
+        .story-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .story-card.drag-over {
+            border-color: var(--accent-primary);
+            background: rgba(10, 132, 255, 0.05);
+        }
+
+        .story-card.filled {
+            border-color: var(--border-medium);
+        }
+
+        .story-card.filled .card-number {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .card-number {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            background: var(--bg-glass);
+            border-radius: var(--radius-sm);
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .story-card:hover .card-actions {
+            opacity: 1;
+        }
+
+        .card-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-glass);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all var(--transition-fast);
+        }
+
+        .card-btn:hover {
+            background: var(--bg-glass-hover);
+            color: var(--text-primary);
+        }
+
+        .card-btn.delete:hover {
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--accent-danger);
+        }
+
+        /* Card Content */
+        .card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .story-input {
+            width: 100%;
+            flex: 1;
+            min-height: 80px;
+            padding: 0;
+            font-family: inherit;
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            resize: none;
+            outline: none;
+        }
+
+        .story-input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        /* Card Footer */
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: var(--space-sm);
+            padding-top: var(--space-sm);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .char-count {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .char-count.warning {
+            color: var(--accent-warning);
+        }
+
+        .char-count.danger {
+            color: var(--accent-danger);
+        }
+
+        .card-tag {
+            font-size: var(--font-size-xs);
+            padding: 2px 8px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-full);
+            color: var(--text-tertiary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           ADD CARD BUTTON
+        ═══════════════════════════════════════════════════════════ */
+        .add-card {
+            border: 2px dashed var(--border-subtle);
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            min-height: 180px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .add-card:hover {
+            border-color: var(--accent-primary);
+            background: rgba(10, 132, 255, 0.03);
+            transform: translateY(-4px);
+        }
+
+        .add-card-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-glass);
+            border-radius: var(--radius-md);
+            font-size: 24px;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+        .add-card:hover .add-card-icon {
+            background: var(--accent-gradient);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .add-card-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-tertiary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           MODAL — Export/Import
+        ═══════════════════════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-base);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            transform: scale(0.95) translateY(20px);
+            transition: transform var(--transition-base);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .modal-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: var(--space-lg);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: var(--space-sm);
+            padding: var(--space-lg);
+            border-top: 1px solid var(--border-subtle);
+            justify-content: flex-end;
+        }
+
+        .export-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: var(--space-md);
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            resize: vertical;
+            outline: none;
+        }
+
+        .export-textarea:focus {
+            border-color: var(--accent-primary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           TOAST NOTIFICATIONS
+        ═══════════════════════════════════════════════════════════ */
+        .toast-container {
+            position: fixed;
+            bottom: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-elevated);
+            transform: translateX(120%);
+            transition: transform var(--transition-bounce);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 18px;
+        }
+
+        .toast.success .toast-icon {
+            color: var(--accent-success);
+        }
+
+        .toast.error .toast-icon {
+            color: var(--accent-danger);
+        }
+
+        .toast-message {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           TIPS PANEL — Storytelling Guide
+        ═══════════════════════════════════════════════════════════ */
+        .tips-panel {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .tips-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+            cursor: pointer;
+        }
+
+        .tips-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+        }
+
+        .tips-toggle {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-glass);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-tertiary);
+            cursor: pointer;
+            transition: transform var(--transition-fast);
+        }
+
+        .tips-panel.collapsed .tips-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .tips-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            overflow: hidden;
+            max-height: 500px;
+            transition: max-height var(--transition-slow), opacity var(--transition-base);
+        }
+
+        .tips-panel.collapsed .tips-content {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .tip-item {
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+        }
+
+        .tip-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-sm);
+            color: white;
+            margin-bottom: var(--space-xs);
+        }
+
+        .tip-title {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tip-desc {
+            font-size: var(--font-size-xs);
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .logo-text {
+                font-size: var(--font-size-base);
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .btn span {
+                display: none;
+            }
+
+            .btn-icon span {
+                display: flex;
+            }
+
+            .main {
+                padding: var(--space-md);
+            }
+
+            .stats-bar {
+                flex-direction: column;
+            }
+
+            .story-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-sm);
+            }
+
+            .section-tip {
+                width: 100%;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           ANIMATIONS
+        ═══════════════════════════════════════════════════════════ */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .story-card {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .story-card:nth-child(1) { animation-delay: 0.02s; }
+        .story-card:nth-child(2) { animation-delay: 0.04s; }
+        .story-card:nth-child(3) { animation-delay: 0.06s; }
+        .story-card:nth-child(4) { animation-delay: 0.08s; }
+        .story-card:nth-child(5) { animation-delay: 0.10s; }
+        .story-card:nth-child(6) { animation-delay: 0.12s; }
+        /* Continue pattern for more cards */
+
+        .saved-indicator {
+            animation: pulse 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">📖</div>
+                    <span class="logo-text">Story Constructor</span>
+                    <span class="logo-badge">v1.0</span>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-ghost" onclick="clearAll()" title="Очистить всё">
+                        <span>🗑️</span>
+                        <span>Очистить</span>
+                    </button>
+                    <button class="btn btn-glass" onclick="openExportModal('text')" title="Экспорт как текст">
+                        <span>📄</span>
+                        <span>Текст</span>
+                    </button>
+                    <button class="btn btn-glass" onclick="openExportModal('json')" title="Экспорт/Импорт JSON">
+                        <span>💾</span>
+                        <span>JSON</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="copyToClipboard()" title="Скопировать всё">
+                        <span>📋</span>
+                        <span>Копировать</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-value accent" id="filledCount">0</div>
+                    <div class="stat-label">Заполнено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCount">30</div>
+                    <div class="stat-label">Всего сторис</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="charCount">0</div>
+                    <div class="stat-label">Символов</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">Прогресс сторителлинга</span>
+                        <span class="progress-percent" id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Panel -->
+            <div class="tips-panel" id="tipsPanel">
+                <div class="tips-header" onclick="toggleTips()">
+                    <div class="tips-title">
+                        <span>💡</span>
+                        <span>Структура сторителлинга "Обо мне"</span>
+                    </div>
+                    <button class="tips-toggle">▼</button>
+                </div>
+                <div class="tips-content">
+                    <div class="tip-item">
+                        <div class="tip-number">1</div>
+                        <div class="tip-title">Hook (1-3)</div>
+                        <div class="tip-desc">Зацепи внимание! Провокация, вопрос или шок-факт о себе</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-number">2</div>
+                        <div class="tip-title">Кто я (4-8)</div>
+                        <div class="tip-desc">Расскажи чем занимаешься и в чём твоя суперсила</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-number">3</div>
+                        <div class="tip-title">Путь (9-15)</div>
+                        <div class="tip-desc">История трансформации: от точки А до точки Б</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-number">4</div>
+                        <div class="tip-title">Ценности (16-20)</div>
+                        <div class="tip-desc">Во что веришь? Что ненавидишь? Твоя философия</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-number">5</div>
+                        <div class="tip-title">Результаты (21-25)</div>
+                        <div class="tip-desc">Социальное доказательство: цифры, кейсы, достижения</div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-number">6</div>
+                        <div class="tip-title">CTA (26-30)</div>
+                        <div class="tip-desc">Что делать дальше? Подписка, продукт, связь</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stories Grid -->
+            <div class="story-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h2>Твои сторис</h2>
+                        <span class="section-count" id="sectionCount">30 слайдов</span>
+                    </div>
+                    <div class="section-tip">
+                        💡 Перетаскивай карточки для изменения порядка
+                    </div>
+                </div>
+                
+                <div class="story-grid" id="storyGrid">
+                    <!-- Cards will be generated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Экспорт</h3>
+                <button class="btn btn-icon btn-ghost" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <textarea class="export-textarea" id="exportTextarea" placeholder="Содержимое появится здесь..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-glass" onclick="closeModal()">Закрыть</button>
+                <button class="btn btn-glass" onclick="importData()" id="importBtn" style="display: none;">
+                    <span>📥</span> Импортировать
+                </button>
+                <button class="btn btn-primary" onclick="copyExportData()">
+                    <span>📋</span> Копировать
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // STATE MANAGEMENT
+        // ═══════════════════════════════════════════════════════════
+        
+        const STORAGE_KEY = 'story-constructor-data';
+        const MAX_CHARS = 200; // Максимум символов для сторис
+        const WARNING_CHARS = 150; // Предупреждение о длине
+        
+        let stories = [];
+        let draggedCard = null;
+        let currentExportType = 'text';
+
+        // ═══════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════
+        
+        function init() {
+            loadFromStorage();
+            
+            // Если нет сохранённых данных, создаём 30 пустых слотов
+            if (stories.length === 0) {
+                stories = Array.from({ length: 30 }, (_, i) => ({
+                    id: i + 1,
+                    content: '',
+                    tag: getTagForIndex(i)
+                }));
+            }
+            
+            renderStories();
+            updateStats();
+            
+            // Автосохранение при вводе
+            document.addEventListener('input', debounce(saveToStorage, 500));
+        }
+
+        // Определяем тег на основе позиции (структура сторителлинга)
+        function getTagForIndex(index) {
+            if (index < 3) return 'Hook';
+            if (index < 8) return 'Кто я';
+            if (index < 15) return 'Путь';
+            if (index < 20) return 'Ценности';
+            if (index < 25) return 'Результаты';
+            return 'CTA';
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // RENDERING
+        // ═══════════════════════════════════════════════════════════
+        
+        function renderStories() {
+            const grid = document.getElementById('storyGrid');
+            grid.innerHTML = '';
+            
+            stories.forEach((story, index) => {
+                const card = createStoryCard(story, index);
+                grid.appendChild(card);
+            });
+            
+            // Добавляем кнопку "Добавить"
+            const addCard = createAddCard();
+            grid.appendChild(addCard);
+        }
+
+        function createStoryCard(story, index) {
+            const card = document.createElement('div');
+            card.className = `story-card ${story.content ? 'filled' : ''}`;
+            card.draggable = true;
+            card.dataset.index = index;
+            
+            const charClass = getCharCountClass(story.content.length);
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-number">${index + 1}</div>
+                    <div class="card-actions">
+                        <button class="card-btn" onclick="moveCard(${index}, -1)" title="Вверх">↑</button>
+                        <button class="card-btn" onclick="moveCard(${index}, 1)" title="Вниз">↓</button>
+                        <button class="card-btn delete" onclick="deleteCard(${index})" title="Удалить">✕</button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <textarea 
+                        class="story-input" 
+                        placeholder="Сторис ${index + 1}..."
+                        oninput="updateStory(${index}, this.value)"
+                    >${story.content}</textarea>
+                </div>
+                <div class="card-footer">
+                    <span class="char-count ${charClass}">${story.content.length}/${MAX_CHARS}</span>
+                    <span class="card-tag">${story.tag}</span>
+                </div>
+            `;
+            
+            // Drag & Drop events
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('dragenter', handleDragEnter);
+            card.addEventListener('dragleave', handleDragLeave);
+            card.addEventListener('drop', handleDrop);
+            
+            return card;
+        }
+
+        function createAddCard() {
+            const card = document.createElement('div');
+            card.className = 'story-card add-card';
+            card.onclick = addNewCard;
+            
+            card.innerHTML = `
+                <div class="add-card-icon">+</div>
+                <span class="add-card-text">Добавить сторис</span>
+            `;
+            
+            return card;
+        }
+
+        function getCharCountClass(length) {
+            if (length > MAX_CHARS) return 'danger';
+            if (length > WARNING_CHARS) return 'warning';
+            return '';
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // CARD OPERATIONS
+        // ═══════════════════════════════════════════════════════════
+        
+        function updateStory(index, value) {
+            stories[index].content = value;
+            
+            // Обновляем счётчик символов
+            const card = document.querySelector(`[data-index="${index}"]`);
+            if (card) {
+                const charCount = card.querySelector('.char-count');
+                charCount.textContent = `${value.length}/${MAX_CHARS}`;
+                charCount.className = `char-count ${getCharCountClass(value.length)}`;
+                
+                // Обновляем класс filled
+                card.classList.toggle('filled', value.length > 0);
+            }
+            
+            updateStats();
+        }
+
+        function addNewCard() {
+            const newStory = {
+                id: Date.now(),
+                content: '',
+                tag: getTagForIndex(stories.length)
+            };
+            stories.push(newStory);
+            renderStories();
+            updateStats();
+            saveToStorage();
+            showToast('Сторис добавлена', 'success');
+        }
+
+        function deleteCard(index) {
+            if (stories.length <= 1) {
+                showToast('Нельзя удалить последнюю сторис', 'error');
+                return;
+            }
+            
+            stories.splice(index, 1);
+            
+            // Обновляем теги
+            stories.forEach((story, i) => {
+                story.tag = getTagForIndex(i);
+            });
+            
+            renderStories();
+            updateStats();
+            saveToStorage();
+            showToast('Сторис удалена', 'success');
+        }
+
+        function moveCard(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= stories.length) return;
+            
+            [stories[index], stories[newIndex]] = [stories[newIndex], stories[index]];
+            
+            // Обновляем теги
+            stories.forEach((story, i) => {
+                story.tag = getTagForIndex(i);
+            });
+            
+            renderStories();
+            saveToStorage();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // DRAG & DROP
+        // ═══════════════════════════════════════════════════════════
+        
+        function handleDragStart(e) {
+            draggedCard = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+            draggedCard = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (this !== draggedCard && !this.classList.contains('add-card')) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            if (this === draggedCard || this.classList.contains('add-card')) return;
+            
+            const fromIndex = parseInt(draggedCard.dataset.index);
+            const toIndex = parseInt(this.dataset.index);
+            
+            // Перемещаем элемент
+            const [movedStory] = stories.splice(fromIndex, 1);
+            stories.splice(toIndex, 0, movedStory);
+            
+            // Обновляем теги
+            stories.forEach((story, i) => {
+                story.tag = getTagForIndex(i);
+            });
+            
+            renderStories();
+            saveToStorage();
+            showToast('Порядок изменён', 'success');
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // STATS & PROGRESS
+        // ═══════════════════════════════════════════════════════════
+        
+        function updateStats() {
+            const filledCount = stories.filter(s => s.content.trim().length > 0).length;
+            const totalCount = stories.length;
+            const totalChars = stories.reduce((sum, s) => sum + s.content.length, 0);
+            const progress = Math.round((filledCount / totalCount) * 100);
+            
+            document.getElementById('filledCount').textContent = filledCount;
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('charCount').textContent = totalChars;
+            document.getElementById('progressPercent').textContent = `${progress}%`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('sectionCount').textContent = `${totalCount} слайдов`;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // STORAGE
+        // ═══════════════════════════════════════════════════════════
+        
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stories));
+            } catch (e) {
+                console.error('Failed to save:', e);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    stories = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('Failed to load:', e);
+                stories = [];
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // EXPORT / IMPORT
+        // ═══════════════════════════════════════════════════════════
+        
+        function openExportModal(type) {
+            currentExportType = type;
+            const modal = document.getElementById('exportModal');
+            const textarea = document.getElementById('exportTextarea');
+            const title = document.getElementById('modalTitle');
+            const importBtn = document.getElementById('importBtn');
+            
+            if (type === 'text') {
+                title.textContent = 'Экспорт как текст';
+                textarea.value = generateTextExport();
+                textarea.readOnly = true;
+                importBtn.style.display = 'none';
+            } else {
+                title.textContent = 'Экспорт / Импорт JSON';
+                textarea.value = JSON.stringify(stories, null, 2);
+                textarea.readOnly = false;
+                importBtn.style.display = 'flex';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function generateTextExport() {
+            let text = '═══════════════════════════════════\n';
+            text += '     МОЙ СТОРИТЕЛЛИНГ "ОБО МНЕ"\n';
+            text += '═══════════════════════════════════\n\n';
+            
+            stories.forEach((story, index) => {
+                text += `[${index + 1}] ${story.tag}\n`;
+                text += '─────────────────────────────────\n';
+                text += story.content || '(пусто)';
+                text += '\n\n';
+            });
+            
+            return text;
+        }
+
+        function copyExportData() {
+            const textarea = document.getElementById('exportTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Скопировано!', 'success');
+        }
+
+        function importData() {
+            try {
+                const textarea = document.getElementById('exportTextarea');
+                const imported = JSON.parse(textarea.value);
+                
+                if (!Array.isArray(imported)) {
+                    throw new Error('Данные должны быть массивом');
+                }
+                
+                stories = imported.map((item, i) => ({
+                    id: item.id || Date.now() + i,
+                    content: item.content || '',
+                    tag: item.tag || getTagForIndex(i)
+                }));
+                
+                renderStories();
+                updateStats();
+                saveToStorage();
+                closeModal();
+                showToast('Данные импортированы!', 'success');
+            } catch (e) {
+                showToast('Ошибка импорта: ' + e.message, 'error');
+            }
+        }
+
+        function copyToClipboard() {
+            const text = generateTextExport();
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Скопировано в буфер!', 'success');
+            }).catch(() => {
+                showToast('Ошибка копирования', 'error');
+            });
+        }
+
+        function clearAll() {
+            if (!confirm('Вы уверены? Это удалит весь контент.')) return;
+            
+            stories = Array.from({ length: 30 }, (_, i) => ({
+                id: i + 1,
+                content: '',
+                tag: getTagForIndex(i)
+            }));
+            
+            renderStories();
+            updateStats();
+            saveToStorage();
+            showToast('Очищено', 'success');
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // TIPS PANEL
+        // ═══════════════════════════════════════════════════════════
+        
+        function toggleTips() {
+            const panel = document.getElementById('tipsPanel');
+            panel.classList.toggle('collapsed');
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // TOAST NOTIFICATIONS
+        // ═══════════════════════════════════════════════════════════
+        
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${type === 'success' ? '✓' : '⚠'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // UTILITIES
+        // ═══════════════════════════════════════════════════════════
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Close modal on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on overlay click
+        document.getElementById('exportModal').addEventListener('click', (e) => {
+            if (e.target.id === 'exportModal') {
+                closeModal();
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
